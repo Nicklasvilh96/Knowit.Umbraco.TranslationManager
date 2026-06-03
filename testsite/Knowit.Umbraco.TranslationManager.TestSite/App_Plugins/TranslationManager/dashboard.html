@@ -1,0 +1,384 @@
+<div ng-controller="TranslationManagerDashboardController as vm" ng-form="tmForm" class="translation-manager">
+
+  <div class="umb-dashboard-header">
+    <h1 class="umb-page-title">Translation Manager</h1>
+    <p class="umb-page-title-description">Compares Umbraco dictionary keys against usage in configured source directories.</p>
+  </div>
+
+  <umb-load-indicator ng-if="vm.loading"></umb-load-indicator>
+
+  <div class="tm-error" ng-if="vm.error">
+    <span class="icon-alert"></span> {{vm.error}}
+  </div>
+
+  <!-- Setup wizard -->
+  <div ng-if="!vm.loading && vm.data && !vm.data.sourcesConfigured" class="tm-wizard">
+
+    <div class="tm-wizard-header">
+      <div class="tm-wizard-icon">⚙</div>
+      <div class="tm-wizard-heading">
+        <h3>Configure scan sources</h3>
+        <p>Select a preset to configure where Translation Manager should look for translation keys in your code.</p>
+      </div>
+    </div>
+
+    <div class="tm-section-label">
+      {{vm.setup.sources.length > 0 ? 'Add another source' : 'Choose a preset'}}
+    </div>
+    <div class="tm-preset-grid">
+      <button class="tm-preset-card"
+              ng-repeat="p in vm.presets track by p.id"
+              ng-class="{active: vm.setup.selectedPreset === p.id}"
+              ng-click="vm.selectPreset(p)">
+        <div class="tm-preset-badge" ng-style="{'background': p.badgeBg, 'color': p.badgeColor}">{{p.badge}}</div>
+        <div>
+          <span class="tm-preset-name">{{p.label}}</span>
+          <span class="tm-preset-hint">{{p.hint}}</span>
+        </div>
+      </button>
+    </div>
+
+    <div class="tm-config-panes" ng-if="vm.setup.selectedPreset || vm.setup.sources.length > 0">
+
+      <div class="tm-config-pane">
+        <div class="tm-pane-header">Configuration</div>
+        <div class="tm-pane-body">
+
+          <div class="tm-sources-list" ng-if="vm.setup.sources.length > 0">
+            <div class="tm-field-label" style="margin-bottom:8px;">Scan sources</div>
+            <div class="tm-source-chip" ng-repeat="s in vm.setup.sources track by $index">
+              <span class="tm-source-chip-name">{{s.Name}}</span>
+              <span class="tm-source-chip-path">{{s.RootPath}}</span>
+              <button class="tm-source-chip-remove" ng-click="vm.removeSource($index)" title="Remove">×</button>
+            </div>
+          </div>
+
+          <div ng-if="vm.setup.selectedPreset">
+            <div class="tm-pane-divider" ng-if="vm.setup.sources.length > 0">New source</div>
+            <div class="tm-field">
+              <label class="tm-field-label">Source name</label>
+              <input type="text" class="tm-field-input" ng-model="vm.setup.name" placeholder="e.g. React" />
+            </div>
+            <div class="tm-field">
+              <label class="tm-field-label">Root path <span class="tm-field-hint">relative to ContentRootPath</span></label>
+              <input type="text" class="tm-field-input tm-field-input--mono" ng-model="vm.setup.rootPath" placeholder="../frontend/src" />
+            </div>
+            <div class="tm-field">
+              <label class="tm-field-label">File patterns <span class="tm-field-hint">comma-separated</span></label>
+              <input type="text" class="tm-field-input tm-field-input--mono" ng-model="vm.setup.filePatterns" placeholder="*.tsx, *.ts, *.js" />
+            </div>
+
+            <div class="tm-generator" ng-if="vm.setup.selectedPreset === 'custom'">
+              <div class="tm-generator-title">Generate key pattern</div>
+              <div class="tm-field">
+                <label class="tm-field-label">Translation convention</label>
+                <input type="text" class="tm-field-input tm-field-input--mono"
+                       ng-model="vm.setup.example"
+                       ng-change="vm.derivePattern()"
+                       ng-attr-placeholder="vm.examplePlaceholder" />
+                <span class="tm-generator-hint">
+                  Replace the translation key with <code ng-bind="vm.keyMarker"></code>, e.g.
+                  <code ng-bind="vm.examplePlaceholder"></code>. The pattern updates automatically.
+                </span>
+              </div>
+              <div class="tm-generator-error" ng-if="vm.setup.generateError">{{vm.setup.generateError}}</div>
+            </div>
+
+            <div class="tm-field">
+              <label class="tm-field-label">Key pattern <span class="tm-field-hint">regex, group 1 = key</span></label>
+              <input type="text" class="tm-field-input tm-field-input--mono" ng-model="vm.setup.keyPattern" placeholder="e.g. \\bt\(['\&quot;]([^'&quot;]+)" />
+            </div>
+
+            <div class="tm-form-actions">
+              <button class="tm-add-source-btn"
+                      ng-click="vm.addSource()"
+                      ng-disabled="!vm.canAddSource()">
+                + Add source
+              </button>
+            </div>
+          </div>
+
+          <div class="tm-global-settings">
+            <div class="tm-pane-divider">Global settings</div>
+            <div class="tm-field">
+              <label class="tm-field-label">Excluded directories <span class="tm-field-hint">comma-separated</span></label>
+              <input type="text" class="tm-field-input tm-field-input--mono"
+                     ng-model="vm.setup.excludedDirectories"
+                     placeholder="node_modules, bin, obj, .git" />
+            </div>
+            <div class="tm-field">
+              <label class="tm-field-label">Cache duration <span class="tm-field-hint">minutes, 0 = off</span></label>
+              <input type="number" class="tm-field-input tm-field-input--narrow"
+                     ng-model="vm.setup.cacheDurationMinutes" min="0" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tm-snippet-pane">
+        <div class="tm-pane-header">
+          appsettings.json
+          <button class="tm-snippet-copy-btn"
+                  ng-class="{'tm-copied': vm.setup.copied}"
+                  ng-click="vm.copySnippet()">
+            {{vm.setup.copied ? '✓ Copied' : 'Copy'}}
+          </button>
+        </div>
+        <pre class="tm-snippet-pre">{{vm.generatedSnippet()}}</pre>
+      </div>
+
+    </div>
+  </div>
+
+  <div ng-if="!vm.loading && vm.data && vm.data.sourcesConfigured">
+
+    <div class="tm-scan-bar">
+      <div class="tm-scan-sources">
+        <span class="tm-scan-source" ng-repeat="d in vm.data.diagnostics">
+          <span class="tm-scan-dot" ng-class="d.exists ? 'tm-dot-ok' : 'tm-dot-warn'"></span>
+          <span class="tm-scan-source-name">{{d.source}}</span>
+          <span class="tm-scan-filecount">{{d.patternMatchedFiles}} files</span>
+        </span>
+      </div>
+      <div class="tm-scan-right">
+        <span class="tm-health-badge" ng-class="vm.healthClass()">{{vm.healthLabel()}}</span>
+        <span class="tm-scanned-at" ng-if="vm.data.scannedAt">{{vm.timeAgo()}}</span>
+        <button class="tm-rescan-btn" ng-click="vm.scan(true)" ng-disabled="vm.loading">↻ Rescan</button>
+      </div>
+    </div>
+
+    <div class="tm-diagnostics" ng-if="vm.scanWarnings().length > 0">
+      <div class="tm-diag-item" ng-repeat="w in vm.scanWarnings()">
+        <span class="tm-diag-icon">⚠</span>
+        <div>
+          <span class="tm-diag-source">{{w.source}}</span>
+          <span class="tm-diag-msg">{{w.message}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tm-summary">
+      <div class="tm-stat">
+        <span class="tm-stat-value">{{vm.data.summary.dictionaryCount}}</span>
+        <span class="tm-stat-label">Dictionary keys</span>
+        <span class="tm-stat-sub">total in Umbraco</span>
+      </div>
+      <div class="tm-stat tm-stat-ok">
+        <span class="tm-stat-value">{{vm.data.summary.usedCount}}</span>
+        <span class="tm-stat-label">Used in code</span>
+        <span class="tm-stat-sub">found in sources</span>
+      </div>
+      <div class="tm-stat" ng-class="vm.data.summary.unusedCount > 0 ? 'tm-stat-warn' : 'tm-stat-ok'">
+        <span class="tm-stat-value">{{vm.data.summary.unusedCount}}</span>
+        <span class="tm-stat-label">Unused</span>
+        <span class="tm-stat-sub">safe to remove</span>
+      </div>
+      <div class="tm-stat" ng-class="vm.data.summary.missingCount > 0 ? 'tm-stat-danger' : 'tm-stat-ok'">
+        <span class="tm-stat-value">{{vm.data.summary.missingCount}}</span>
+        <span class="tm-stat-label">Missing</span>
+        <span class="tm-stat-sub">not in dictionary</span>
+      </div>
+    </div>
+
+    <div class="tm-toolbar">
+      <input type="search" class="tm-search" placeholder="Filter keys…" ng-model="vm.filter" />
+    </div>
+
+    <ul class="nav nav-tabs tm-tabs">
+      <li ng-class="{active: vm.activeTab === 'unused'}">
+        <a href="" ng-click="vm.activeTab = 'unused'">
+          Unused <span class="badge">{{vm.data.summary.unusedCount}}</span>
+        </a>
+      </li>
+      <li ng-class="{active: vm.activeTab === 'missing'}">
+        <a href="" ng-click="vm.activeTab = 'missing'">
+          Missing <span class="badge">{{vm.data.summary.missingCount}}</span>
+        </a>
+      </li>
+      <li ng-class="{active: vm.activeTab === 'completeness'}">
+        <a href="" ng-click="vm.openCompleteness()">
+          Completeness
+          <span class="badge" ng-if="vm.completeness">{{vm.completeness.summary.incompleteCount}}</span>
+        </a>
+      </li>
+      <li ng-class="{active: vm.activeTab === 'all'}">
+        <a href="" ng-click="vm.activeTab = 'all'">
+          All keys <span class="badge">{{vm.data.summary.dictionaryCount}}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Unused -->
+    <div ng-if="vm.activeTab === 'unused'">
+      <p class="tm-empty" ng-if="vm.filteredUnused().length === 0">
+        {{vm.filter ? 'No matches.' : 'No unused keys.'}}
+      </p>
+      <div ng-if="vm.filteredUnused().length > 0">
+        <div class="tm-bulk-bar">
+          <label class="tm-checkbox-label">
+            <input type="checkbox"
+                   ng-checked="vm.allUnusedSelected()"
+                   ng-click="vm.toggleAllUnused()" />
+            Select all
+          </label>
+          <button class="btn btn-danger tm-btn-sm"
+                  ng-click="vm.deleteSelected()"
+                  ng-disabled="vm.selectedUnusedCount() === 0">
+            Delete ({{vm.selectedUnusedCount()}})
+          </button>
+        </div>
+        <table class="tm-table">
+          <thead><tr><th class="tm-col-check"></th><th>Key</th><th class="tm-col-action"></th></tr></thead>
+          <tbody>
+            <tr ng-repeat="item in vm.filteredUnused()" ng-class="{selected: vm.selectedUnused[item.key]}">
+              <td>
+                <input type="checkbox"
+                       ng-checked="vm.selectedUnused[item.key]"
+                       ng-click="vm.selectedUnused[item.key] = !vm.selectedUnused[item.key]" />
+              </td>
+              <td><code>{{item.key}}</code></td>
+              <td>
+                <a ng-href="#/translation/dictionary/edit/{{item.id}}" class="tm-icon-btn" title="Edit in dictionary">✎</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Missing -->
+    <div ng-if="vm.activeTab === 'missing'">
+      <p class="tm-empty" ng-if="vm.filteredMissing().length === 0">
+        {{vm.filter ? 'No matches.' : 'No missing keys.'}}
+      </p>
+      <table class="tm-table" ng-if="vm.filteredMissing().length > 0">
+        <thead><tr><th>Key</th><th>Referenced in</th><th class="tm-col-action"></th></tr></thead>
+        <tbody>
+          <tr ng-repeat-start="item in vm.filteredMissing()">
+            <td><code>{{item.key}}</code></td>
+            <td>
+              <div class="tm-sources">
+                <div class="tm-source-group" ng-repeat="src in item.sources">
+                  <span class="tm-source-name">{{src.name}}</span>
+                  <div class="tm-files">
+                    <span class="tm-file" ng-repeat="file in src.files">{{file}}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <button class="tm-icon-btn" ng-click="vm.toggleAddKey(item.key)"
+                      title="Add to dictionary"
+                      ng-class="{active: vm.expandedMissing[item.key]}">+</button>
+            </td>
+          </tr>
+          <tr ng-repeat-end ng-if="vm.expandedMissing[item.key]" class="tm-add-row">
+            <td colspan="3">
+              <div class="tm-add-form">
+                <div class="tm-add-fields">
+                  <div class="tm-add-field" ng-repeat="culture in vm.data.cultures">
+                    <label class="tm-add-label">{{culture.name}}</label>
+                    <input type="text"
+                           class="tm-add-input"
+                           ng-model="vm.newKeyValues[item.key][culture.isoCode]"
+                           placeholder="{{culture.isoCode}}" />
+                  </div>
+                </div>
+                <div class="tm-add-actions">
+                  <button class="btn btn-primary tm-btn-sm"
+                          ng-click="vm.saveKey(item.key)"
+                          ng-disabled="vm.savingKey[item.key]">
+                    {{vm.savingKey[item.key] ? 'Saving…' : 'Add to dictionary'}}
+                  </button>
+                  <button class="btn tm-btn-sm" ng-click="vm.toggleAddKey(item.key)">Cancel</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Completeness -->
+    <div ng-if="vm.activeTab === 'completeness'">
+      <umb-load-indicator ng-if="vm.loadingCompleteness"></umb-load-indicator>
+      <div ng-if="!vm.loadingCompleteness && vm.completeness">
+        <div class="tm-completeness-summary">
+          <span class="tm-stat-ok">{{vm.completeness.summary.completeCount}} fully translated</span>
+          <span ng-if="vm.completeness.summary.incompleteCount > 0" class="tm-stat-warn">
+            {{vm.completeness.summary.incompleteCount}} incomplete
+          </span>
+          <span ng-if="vm.completeness.summary.incompleteCount === 0" class="tm-stat-ok">
+            All keys have translations for all languages
+          </span>
+        </div>
+        <div class="tm-toolbar">
+          <input type="search" class="tm-search" placeholder="Filter keys…" ng-model="vm.completenessFilter" />
+        </div>
+        <p class="tm-empty" ng-if="vm.filteredIncomplete().length === 0">
+          {{vm.completenessFilter ? 'No matches.' : 'All keys are fully translated.'}}
+        </p>
+        <table class="tm-table" ng-if="vm.filteredIncomplete().length > 0">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th ng-repeat="culture in vm.completeness.cultures">{{culture.name}}</th>
+              <th class="tm-col-action"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="item in vm.filteredIncomplete()">
+              <td><code>{{item.key}}</code></td>
+              <td ng-repeat="culture in vm.completeness.cultures">
+                <span ng-if="vm.hasTranslation(item.translations[culture.isoCode])"
+                      class="tm-translation-value"
+                      title="{{item.translations[culture.isoCode]}}">
+                  {{item.translations[culture.isoCode]}}
+                </span>
+                <span ng-if="!vm.hasTranslation(item.translations[culture.isoCode])"
+                      class="tm-missing-translation">missing</span>
+              </td>
+              <td>
+                <a ng-href="#/translation/dictionary/edit/{{item.id}}" class="tm-icon-btn" title="Edit in dictionary">✎</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- All keys -->
+    <div ng-if="vm.activeTab === 'all'">
+      <p class="tm-empty" ng-if="vm.filteredAll().length === 0">No matches.</p>
+      <table class="tm-table" ng-if="vm.filteredAll().length > 0">
+        <thead><tr><th>Key</th><th>Status</th><th>Files</th><th class="tm-col-action"></th></tr></thead>
+        <tbody>
+          <tr ng-repeat="item in vm.filteredAll()">
+            <td><code>{{item.key}}</code></td>
+            <td><span class="tm-badge" ng-class="vm.sourceClass(item)">{{vm.sourceLabel(item)}}</span></td>
+            <td>
+              <div class="tm-sources">
+                <div class="tm-source-group" ng-repeat="src in item.sources">
+                  <span class="tm-source-name">{{src.name}}</span>
+                  <div class="tm-files">
+                    <span class="tm-file" ng-repeat="file in src.files">{{file}}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <a ng-href="#/translation/dictionary/edit/{{item.id}}" class="tm-icon-btn" title="Edit in dictionary">✎</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="tm-empty" ng-if="!vm.loading && !vm.data && !vm.error">
+    <button class="btn btn-primary" ng-click="vm.scan(false)">Run scan</button>
+  </div>
+
+</div>

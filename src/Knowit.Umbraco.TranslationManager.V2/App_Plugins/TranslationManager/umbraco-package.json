@@ -1,0 +1,34 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "Knowit.Umbraco.TranslationManager",
+  "version": "2.0.0",
+  "extensions": [
+    {
+      "type": "section",
+      "alias": "Tm.Section",
+      "name": "Translation Manager",
+      "meta": {
+        "label": "Translation Manager",
+        "pathname": "translation-manager"
+      }
+    },
+    {
+      "type": "dashboard",
+      "alias": "Tm.Dashboard",
+      "name": "Translation Manager Dashboard",
+      "element": "/App_Plugins/TranslationManager/dashboard.js",
+      "elementName": "tm-dashboard",
+      "weight": 100,
+      "conditions": [
+        {
+          "alias": "Umb.Condition.SectionAlias",
+          "match": "Tm.Section"
+        }
+      ],
+      "meta": {
+        "label": "Translation Manager",
+        "pathname": "translation-manager"
+      }
+    }
+  ]
+}

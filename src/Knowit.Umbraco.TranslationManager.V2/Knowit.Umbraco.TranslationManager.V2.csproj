@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <DefaultItemExcludes>$(DefaultItemExcludes);client\node_modules\**;client\dist\**</DefaultItemExcludes>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageId>Knowit.Umbraco.TranslationManager</PackageId>
+    <Version>2.0.1</Version>
+    <Authors>Nicklas Vilhelmsen</Authors>
+    <Company>Knowit</Company>
+    <Copyright>Copyright © Knowit 2026</Copyright>
+    <Description>Backoffice dashboard for Umbraco 17 that audits translation dictionary keys against actual code usage. Surfaces unused keys, missing translations and language gaps across Razor, React, Vue or any custom pattern. Includes a setup wizard, multi-source scanning and optional AI-powered translation suggestions via Umbraco.AI.</Description>
+    <PackageProjectUrl>https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Umbraco.Cms.Web.Common" Version="[17.0.0, 18.0.0)" />
+    <PackageReference Include="Umbraco.AI.Core" Version="1.*" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="App_Plugins\**" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+</Project>

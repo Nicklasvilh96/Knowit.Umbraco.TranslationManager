@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageId>Knowit.Umbraco.TranslationManager</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Nicklas Vilhelmsen</Authors>
+    <Company>Knowit</Company>
+    <Copyright>Copyright © Knowit 2026</Copyright>
+    <Description>Umbraco backoffice dashboard for auditing translation dictionary keys against code usage. Configurable scan sources with regex patterns support Razor, React, Vue, or any custom pattern.</Description>
+    <PackageTags>umbraco;translation;i18n;dictionary;audit;localization</PackageTags>
+    <PackageProjectUrl>https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Umbraco.Cms.Web.Common" Version="[13.4.0,14.0.0)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+  <!--
+    App_Plugins are stored under contentFiles in the package (for publish/production).
+    The .targets file in build\ copies them to the consuming project's directory on
+    every build so Umbraco can serve them in development.
+  -->
+  <ItemGroup>
+    <None Remove="App_Plugins\**" />
+    <Content Include="App_Plugins\**">
+      <Pack>true</Pack>
+      <PackagePath>contentFiles\any\any\App_Plugins\%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <BuildAction>Content</BuildAction>
+    </Content>
+  </ItemGroup>
+
+  <!-- NuGet auto-imports .targets files from build\ on package install -->
+  <ItemGroup>
+    <None Include="build\Knowit.Umbraco.TranslationManager.targets">
+      <Pack>true</Pack>
+      <PackagePath>build\Knowit.Umbraco.TranslationManager.targets</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

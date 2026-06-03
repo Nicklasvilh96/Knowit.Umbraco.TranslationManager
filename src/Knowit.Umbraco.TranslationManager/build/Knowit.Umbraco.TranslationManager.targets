@@ -1,0 +1,17 @@
+<Project>
+  <!--
+    NuGet automatically imports .targets files from the build\ folder.
+    This target copies App_Plugins from the NuGet cache to the consuming
+    project's directory so Umbraco can serve them as static files in development.
+    For production, the contentFiles in the package handle deployment via publish.
+  -->
+  <Target Name="CopyKnowitTranslationManagerAppPlugins" AfterTargets="Build">
+    <ItemGroup>
+      <_TMPluginSource Include="$(MSBuildThisFileDirectory)..\contentFiles\any\any\App_Plugins\**\*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_TMPluginSource)"
+      DestinationFiles="@(_TMPluginSource->'$(MSBuildProjectDirectory)\App_Plugins\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+</Project>

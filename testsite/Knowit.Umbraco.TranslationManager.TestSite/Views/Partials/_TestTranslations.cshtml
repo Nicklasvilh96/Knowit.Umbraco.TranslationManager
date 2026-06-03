@@ -1,0 +1,30 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@*
+    Test partial — exercises all dictionary keys that should appear as "Used in Razor"
+    on the Translation Manager dashboard. Not rendered in any real page; the scanner
+    picks up the GetDictionaryValue calls from this file directly.
+*@
+
+@* nav *@
+<a href="/login">@Umbraco.GetDictionaryValue("nav.login")</a>
+
+@* buttons *@
+<button type="submit">@Umbraco.GetDictionaryValue("buttons.submit")</button>
+<button type="button">@Umbraco.GetDictionaryValue("buttons.cancel")</button>
+<button type="button">@Umbraco.GetDictionaryValue("buttons.save")</button>
+<a href="javascript:history.back()">@Umbraco.GetDictionaryValue("buttons.back")</a>
+
+@* errors *@
+<p>@Umbraco.GetDictionaryValue("errors.notfound")</p>
+<p>@Umbraco.GetDictionaryValue("errors.unauthorized")</p>
+
+@* forms *@
+<span>@Umbraco.GetDictionaryValue("forms.required")</span>
+<span>@Umbraco.GetDictionaryValue("forms.invalid.email")</span>
+<button type="submit">@Umbraco.GetDictionaryValue("forms.submit")</button>
+
+@* dashboard *@
+<h2>@Umbraco.GetDictionaryValue("dashboard.welcome")</h2>
+
+@* accessibility *@
+<button aria-label="@Umbraco.GetDictionaryValue("accessibility.menu")">&#9776;</button>

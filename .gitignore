@@ -1,0 +1,35 @@
+# Build output
+bin/
+obj/
+*.nupkg
+nupkgs/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Umbraco runtime
+testsite/*/umbraco/Data/
+testsite/*/umbraco/Logs/
+testsite/*/umbraco/mediacache/
+testsite/*/umbraco/DependencyInjection.lock
+testsite/*/*.sqlite.db
+testsite/*/*.sqlite.db-shm
+testsite/*/*.sqlite.db-wal
+
+# Node
+testsite/frontend/node_modules/
+testsite/frontend/dist/
+src/*/client/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+.github/copilot-instructions.md
+*-schema*.json
+umbraco-package-schema.json
+
+testsite/*/wwwroot/dist/
