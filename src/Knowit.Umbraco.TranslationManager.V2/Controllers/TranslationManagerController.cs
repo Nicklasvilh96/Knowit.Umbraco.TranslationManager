@@ -158,6 +158,14 @@ public class TranslationManagerController : ControllerBase
         };
     }
 
+    [HttpGet("dictionary-roots")]
+    public async Task<IActionResult> DictionaryRoots()
+    {
+        var roots = await _dictionaryItemService.GetAtRootAsync();
+        var keys = roots.Select(i => i.ItemKey).OrderBy(k => k).ToList();
+        return Ok(keys);
+    }
+
     [HttpGet("completeness")]
     public async Task<IActionResult> Completeness()
     {
@@ -326,6 +334,14 @@ public class TranslationManagerController : ControllerBase
             var descendants = await _dictionaryItemService.GetDescendantsAsync(root.Key, string.Empty);
             allItems.AddRange(descendants);
         }
+
+        var excluded = _options.ExcludedDictionaryRoots;
+        if (excluded.Count > 0)
+            allItems = allItems
+                .Where(i => !excluded.Any(r =>
+                    i.ItemKey.Equals(r, StringComparison.OrdinalIgnoreCase) ||
+                    i.ItemKey.StartsWith(r + ".", StringComparison.OrdinalIgnoreCase)))
+                .ToList();
 
         var parentGuids = allItems
             .Where(i => i.ParentId.HasValue)

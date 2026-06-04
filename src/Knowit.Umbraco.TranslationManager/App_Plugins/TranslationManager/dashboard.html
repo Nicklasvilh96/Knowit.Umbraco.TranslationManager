@@ -111,6 +111,17 @@
               <input type="number" class="tm-field-input tm-field-input--narrow"
                      ng-model="vm.setup.cacheDurationMinutes" min="0" />
             </div>
+            <div class="tm-field" ng-if="vm.dictionaryRoots.length > 0">
+              <label class="tm-field-label">Excluded dictionary roots <span class="tm-field-hint">backend / backoffice keys</span></label>
+              <div class="tm-roots-list">
+                <label class="tm-root-checkbox-label" ng-repeat="root in vm.dictionaryRoots track by root">
+                  <input type="checkbox"
+                         ng-checked="vm.isDictionaryRootExcluded(root)"
+                         ng-click="vm.toggleDictionaryRoot(root)" />
+                  <code>{{root}}</code>
+                </label>
+              </div>
+            </div>
           </div>
 
         </div>

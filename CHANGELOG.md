@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 2026-06-04
+
+### Added
+- `ExcludedDictionaryRoots` configuration option — exclude entire dictionary root trees (and their descendants) from scan and completeness results. Useful for backoffice-only keys that should not appear as unused or missing.
+- Setup wizard now lists existing dictionary roots as checkboxes and includes `ExcludedDictionaryRoots` in the generated `appsettings.json` snippet when any roots are selected.
+- New `GET /umbraco/api/translation-manager/dictionary-roots` endpoint returning all root dictionary keys.
+
+## [1.1.0] - 2026-06-04
+
+### Added
+- `ExcludedDictionaryRoots` configuration option — exclude entire dictionary root trees (and their descendants) from scan and completeness results. Useful for backoffice-only keys that should not appear as unused or missing.
+- Setup wizard now lists existing dictionary roots as checkboxes and includes `ExcludedDictionaryRoots` in the generated `appsettings.json` snippet when any roots are selected.
+- New `GET /umbraco/api/translation-manager/dictionary-roots` endpoint returning all root dictionary keys.
+
 ## [2.0.1] - 2026-06-03
 
 ### Changed

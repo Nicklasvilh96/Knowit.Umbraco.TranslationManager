@@ -35,6 +35,7 @@ interface SetupState {
   sources: SourceConfig[];
   cacheDurationMinutes: number;
   excludedDirectories: string;
+  excludedDictionaryRoots: string[];
   copied: boolean;
 }
 interface Preset {
@@ -63,6 +64,7 @@ function makeSetup(): SetupState {
     sources: [],
     cacheDurationMinutes: 5,
     excludedDirectories: 'node_modules, bin, obj, .git, dist, .vite, wwwroot',
+    excludedDictionaryRoots: [],
     copied: false,
   };
 }
@@ -108,6 +110,7 @@ class TmDashboardElement extends LitElement {
     _aiAvailable:           { state: true },
     _suggestingKey:         { state: true },
     _suggestError:          { state: true },
+    _dictionaryRoots:       { state: true },
   };
 
   private _data: ScanResult | null = null;
@@ -126,11 +129,20 @@ class TmDashboardElement extends LitElement {
   private _aiAvailable = false;
   private _suggestingKey = '';
   private _suggestError = '';
+  private _dictionaryRoots: string[] = [];
 
   connectedCallback() {
     super.connectedCallback();
     this._scan(false);
     this._checkAiAvailable();
+    this._loadDictionaryRoots();
+  }
+
+  private async _loadDictionaryRoots() {
+    try {
+      const res = await fetch('/umbraco/api/translation-manager/dictionary-roots');
+      if (res.ok) this._dictionaryRoots = await res.json();
+    } catch { /* non-critical */ }
   }
 
   // ── API ───────────────────────────────────────────────────────────────────
@@ -378,13 +390,14 @@ class TmDashboardElement extends LitElement {
       });
     }
     const excludedDirs = this._setup.excludedDirectories.split(',').map(d => d.trim()).filter(Boolean);
-    return JSON.stringify({
-      TranslationManager: {
-        CacheDurationMinutes: this._setup.cacheDurationMinutes,
-        ExcludedDirectories: excludedDirs,
-        ScanSources: sources,
-      }
-    }, null, 2);
+    const config: Record<string, unknown> = {
+      CacheDurationMinutes: this._setup.cacheDurationMinutes,
+      ExcludedDirectories: excludedDirs,
+      ScanSources: sources,
+    };
+    if (this._setup.excludedDictionaryRoots.length > 0)
+      config['ExcludedDictionaryRoots'] = this._setup.excludedDictionaryRoots;
+    return JSON.stringify({ TranslationManager: config }, null, 2);
   }
 
   private async _copySnippet() {
@@ -508,6 +521,26 @@ class TmDashboardElement extends LitElement {
                     <input class="field-input narrow" type="number" min="0" .value=${String(s.cacheDurationMinutes)}
                            @input=${(e: Event) => { this._setup = { ...s, cacheDurationMinutes: Number((e.target as HTMLInputElement).value) }; }} />
                   </div>
+                  ${this._dictionaryRoots.length > 0 ? html`
+                    <div class="field">
+                      <label class="field-label">Excluded dictionary roots <span class="field-hint">backend / backoffice keys</span></label>
+                      <div class="roots-list">
+                        ${this._dictionaryRoots.map(root => html`
+                          <label class="root-checkbox-label">
+                            <input type="checkbox"
+                                   .checked=${s.excludedDictionaryRoots.includes(root)}
+                                   @change=${() => {
+                                     const next = s.excludedDictionaryRoots.includes(root)
+                                       ? s.excludedDictionaryRoots.filter(r => r !== root)
+                                       : [...s.excludedDictionaryRoots, root];
+                                     this._setup = { ...s, excludedDictionaryRoots: next };
+                                   }} />
+                            <code>${root}</code>
+                          </label>
+                        `)}
+                      </div>
+                    </div>
+                  ` : nothing}
                 </div>
 
               </div>
@@ -848,6 +881,10 @@ class TmDashboardElement extends LitElement {
     .add-source-btn[disabled] { opacity: 0.4; cursor: default; }
 
     .global-settings { margin-top: 4px; }
+    .roots-list { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+    .root-checkbox-label { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #2c3e50; cursor: pointer; padding: 4px 6px; border-radius: 4px; transition: background 0.12s; }
+    .root-checkbox-label:hover { background: #f0f8ff; }
+    .root-checkbox-label input[type="checkbox"] { cursor: pointer; accent-color: #1c85c7; }
 
     .snippet-pane { border: 1px solid #1a2636; border-radius: 7px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
     .snippet-pane .pane-header { background: #1e2d3d; border-bottom: 1px solid #283d52; color: #7a9ab0; }

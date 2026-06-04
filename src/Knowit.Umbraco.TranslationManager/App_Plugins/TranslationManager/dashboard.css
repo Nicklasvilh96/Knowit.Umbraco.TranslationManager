@@ -871,6 +871,36 @@
     display: block;
 }
 
+/* Dictionary roots picker */
+.tm-roots-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 4px;
+}
+
+.tm-root-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: #2c3e50;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: background 0.12s;
+    font-weight: normal;
+}
+
+.tm-root-checkbox-label:hover {
+    background: #f0f8ff;
+}
+
+.tm-root-checkbox-label input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: #1c85c7;
+}
+
 /* Empty / error states */
 .tm-empty {
     color: #888;

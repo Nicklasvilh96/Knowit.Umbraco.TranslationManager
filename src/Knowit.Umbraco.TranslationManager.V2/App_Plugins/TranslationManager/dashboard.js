@@ -6,7 +6,7 @@ const d = "{{key}}", f = [
   { id: "angular", label: "Angular", badge: "NG", badgeBg: "#ffebee", badgeColor: "#c62828", hint: "'key' | translate", name: "Angular", filePatterns: "*.ts, *.html", keyPattern: String.raw`'([^']+)'\s*\|\s*translate` },
   { id: "custom", label: "Custom", badge: "✦", badgeBg: "#e3f2fd", badgeColor: "#1c85c7", hint: "define your own", name: "", filePatterns: "", keyPattern: "" }
 ];
-function g() {
+function b() {
   return {
     selectedPreset: "",
     name: "",
@@ -18,24 +18,32 @@ function g() {
     sources: [],
     cacheDurationMinutes: 5,
     excludedDirectories: "node_modules, bin, obj, .git, dist, .vite, wwwroot",
+    excludedDictionaryRoots: [],
     copied: !1
   };
 }
-function l(o) {
-  return o.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function l(r) {
+  return r.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
-function b(o) {
-  const e = o.indexOf(d);
+function g(r) {
+  const e = r.indexOf(d);
   if (e === -1) return "";
-  const t = o.substring(0, e), s = o.substring(e + d.length), i = /^\w/.test(t) ? "\\b" : "", r = t.match(/(['"])$/);
-  return r && s.startsWith(r[1]) ? i + l(t.slice(0, -1)) + `['"]([^'"]+)['"]` + l(s.slice(1)) : t.endsWith(".") ? i + l(t) + "([A-Z]\\w+)" : i + l(t) + `([^'"\\s]+)` + l(s);
+  const t = r.substring(0, e), s = r.substring(e + d.length), i = /^\w/.test(t) ? "\\b" : "", o = t.match(/(['"])$/);
+  return o && s.startsWith(o[1]) ? i + l(t.slice(0, -1)) + `['"]([^'"]+)['"]` + l(s.slice(1)) : t.endsWith(".") ? i + l(t) + "([A-Z]\\w+)" : i + l(t) + `([^'"\\s]+)` + l(s);
 }
 const c = class c extends u {
   constructor() {
-    super(...arguments), this._data = null, this._loading = !1, this._error = null, this._activeTab = "unused", this._filter = "", this._completeness = null, this._loadingCompleteness = !1, this._completenessFilter = "", this._selectedUnused = /* @__PURE__ */ new Set(), this._expandedMissing = /* @__PURE__ */ new Set(), this._newKeyValues = {}, this._savingKey = /* @__PURE__ */ new Set(), this._setup = g(), this._aiAvailable = !1, this._suggestingKey = "", this._suggestError = "";
+    super(...arguments), this._data = null, this._loading = !1, this._error = null, this._activeTab = "unused", this._filter = "", this._completeness = null, this._loadingCompleteness = !1, this._completenessFilter = "", this._selectedUnused = /* @__PURE__ */ new Set(), this._expandedMissing = /* @__PURE__ */ new Set(), this._newKeyValues = {}, this._savingKey = /* @__PURE__ */ new Set(), this._setup = b(), this._aiAvailable = !1, this._suggestingKey = "", this._suggestError = "", this._dictionaryRoots = [];
   }
   connectedCallback() {
-    super.connectedCallback(), this._scan(!1), this._checkAiAvailable();
+    super.connectedCallback(), this._scan(!1), this._checkAiAvailable(), this._loadDictionaryRoots();
+  }
+  async _loadDictionaryRoots() {
+    try {
+      const e = await fetch("/umbraco/api/translation-manager/dictionary-roots");
+      e.ok && (this._dictionaryRoots = await e.json());
+    } catch {
+    }
   }
   // ── API ───────────────────────────────────────────────────────────────────
   async _scan(e) {
@@ -160,14 +168,14 @@ const c = class c extends u {
   async _suggestTranslations(e) {
     this._suggestingKey = e, this._suggestError = "";
     try {
-      const t = this._data.cultures.map((r) => r.isoCode), s = await fetch("/umbraco/api/translation-manager/suggest", {
+      const t = this._data.cultures.map((o) => o.isoCode), s = await fetch("/umbraco/api/translation-manager/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key: e, cultures: t })
       });
       if (!s.ok) {
-        const r = await s.json().catch(() => ({}));
-        throw new Error(r.error ?? `Request failed (${s.status})`);
+        const o = await s.json().catch(() => ({}));
+        throw new Error(o.error ?? `Request failed (${s.status})`);
       }
       const i = await s.json();
       this._newKeyValues = {
@@ -221,28 +229,26 @@ const c = class c extends u {
     t.splice(e, 1), this._setup = { ...this._setup, sources: t };
   }
   _onExampleInput(e) {
-    const t = e.target.value, s = b(t);
+    const t = e.target.value, s = g(t);
     this._setup = { ...this._setup, example: t, keyPattern: s, generateError: "" };
   }
   _generatedSnippet() {
     const e = [...this._setup.sources];
     if (this._setup.selectedPreset && this._setup.name && this._setup.keyPattern) {
-      const s = this._setup.filePatterns.split(",").map((i) => i.trim()).filter(Boolean);
+      const i = this._setup.filePatterns.split(",").map((o) => o.trim()).filter(Boolean);
       e.push({
         Name: this._setup.name,
         RootPath: this._setup.rootPath || "../path/to/source",
-        FilePatterns: s.length ? s : ["*.*"],
+        FilePatterns: i.length ? i : ["*.*"],
         KeyPattern: this._setup.keyPattern
       });
     }
-    const t = this._setup.excludedDirectories.split(",").map((s) => s.trim()).filter(Boolean);
-    return JSON.stringify({
-      TranslationManager: {
-        CacheDurationMinutes: this._setup.cacheDurationMinutes,
-        ExcludedDirectories: t,
-        ScanSources: e
-      }
-    }, null, 2);
+    const t = this._setup.excludedDirectories.split(",").map((i) => i.trim()).filter(Boolean), s = {
+      CacheDurationMinutes: this._setup.cacheDurationMinutes,
+      ExcludedDirectories: t,
+      ScanSources: e
+    };
+    return this._setup.excludedDictionaryRoots.length > 0 && (s.ExcludedDictionaryRoots = this._setup.excludedDictionaryRoots), JSON.stringify({ TranslationManager: s }, null, 2);
   }
   async _copySnippet() {
     await navigator.clipboard.writeText(this._generatedSnippet()), this._setup = { ...this._setup, copied: !0 }, setTimeout(() => {
@@ -369,6 +375,24 @@ const c = class c extends u {
       this._setup = { ...e, cacheDurationMinutes: Number(s.target.value) };
     }} />
                   </div>
+                  ${this._dictionaryRoots.length > 0 ? a`
+                    <div class="field">
+                      <label class="field-label">Excluded dictionary roots <span class="field-hint">backend / backoffice keys</span></label>
+                      <div class="roots-list">
+                        ${this._dictionaryRoots.map((s) => a`
+                          <label class="root-checkbox-label">
+                            <input type="checkbox"
+                                   .checked=${e.excludedDictionaryRoots.includes(s)}
+                                   @change=${() => {
+      const i = e.excludedDictionaryRoots.includes(s) ? e.excludedDictionaryRoots.filter((o) => o !== s) : [...e.excludedDictionaryRoots, s];
+      this._setup = { ...e, excludedDictionaryRoots: i };
+    }} />
+                            <code>${s}</code>
+                          </label>
+                        `)}
+                      </div>
+                    </div>
+                  ` : n}
                 </div>
 
               </div>
@@ -538,7 +562,7 @@ const c = class c extends u {
                           <input class="add-input" type="text"
                                  .value=${((i = this._newKeyValues[t.key]) == null ? void 0 : i[s.isoCode]) ?? ""}
                                  placeholder=${s.isoCode}
-                                 @input=${(r) => this._setNewKeyValue(t.key, s.isoCode, r.target.value)} />
+                                 @input=${(o) => this._setNewKeyValue(t.key, s.isoCode, o.target.value)} />
                         </div>
                       `;
     })}
@@ -653,7 +677,8 @@ c.properties = {
   _setup: { state: !0 },
   _aiAvailable: { state: !0 },
   _suggestingKey: { state: !0 },
-  _suggestError: { state: !0 }
+  _suggestError: { state: !0 },
+  _dictionaryRoots: { state: !0 }
 }, c.styles = h`
     :host { display: block; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: #333; }
 
@@ -723,6 +748,10 @@ c.properties = {
     .add-source-btn[disabled] { opacity: 0.4; cursor: default; }
 
     .global-settings { margin-top: 4px; }
+    .roots-list { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+    .root-checkbox-label { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #2c3e50; cursor: pointer; padding: 4px 6px; border-radius: 4px; transition: background 0.12s; }
+    .root-checkbox-label:hover { background: #f0f8ff; }
+    .root-checkbox-label input[type="checkbox"] { cursor: pointer; accent-color: #1c85c7; }
 
     .snippet-pane { border: 1px solid #1a2636; border-radius: 7px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
     .snippet-pane .pane-header { background: #1e2d3d; border-bottom: 1px solid #283d52; color: #7a9ab0; }

@@ -228,7 +228,27 @@ angular.module("umbraco").controller("TranslationManagerDashboardController", [
             sources: [],
             cacheDurationMinutes: 5,
             excludedDirectories: "node_modules, bin, obj, .git, dist, .vite, wwwroot",
+            excludedDictionaryRoots: [],
             copied: false
+        };
+
+        vm.dictionaryRoots = [];
+
+        $http.get("/umbraco/api/translation-manager/dictionary-roots")
+            .then(function (res) { vm.dictionaryRoots = res.data; })
+            .catch(function () { /* non-critical */ });
+
+        vm.toggleDictionaryRoot = function (root) {
+            var idx = vm.setup.excludedDictionaryRoots.indexOf(root);
+            if (idx === -1) {
+                vm.setup.excludedDictionaryRoots.push(root);
+            } else {
+                vm.setup.excludedDictionaryRoots.splice(idx, 1);
+            }
+        };
+
+        vm.isDictionaryRootExcluded = function (root) {
+            return vm.setup.excludedDictionaryRoots.indexOf(root) !== -1;
         };
 
         vm.selectPreset = function (preset) {
@@ -315,15 +335,17 @@ angular.module("umbraco").controller("TranslationManagerDashboardController", [
             var excludedDirs = (vm.setup.excludedDirectories || "")
                 .split(",").map(function (d) { return d.trim(); }).filter(function (d) { return d.length > 0; });
 
-            var config = {
-                TranslationManager: {
-                    CacheDurationMinutes: parseInt(vm.setup.cacheDurationMinutes, 10) || 0,
-                    ExcludedDirectories: excludedDirs,
-                    ScanSources: sources
-                }
+            var translationManager = {
+                CacheDurationMinutes: parseInt(vm.setup.cacheDurationMinutes, 10) || 0,
+                ExcludedDirectories: excludedDirs,
+                ScanSources: sources
             };
 
-            return JSON.stringify(config, null, 2);
+            if (vm.setup.excludedDictionaryRoots.length > 0) {
+                translationManager.ExcludedDictionaryRoots = vm.setup.excludedDictionaryRoots.slice();
+            }
+
+            return JSON.stringify({ TranslationManager: translationManager }, null, 2);
         };
 
         vm.copySnippet = function () {

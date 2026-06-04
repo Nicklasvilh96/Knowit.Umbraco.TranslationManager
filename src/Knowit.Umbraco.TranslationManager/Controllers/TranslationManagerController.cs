@@ -163,6 +163,18 @@ public class TranslationManagerController : UmbracoApiController
         };
     }
 
+    // ── Dictionary roots ──────────────────────────────────────────────────────
+
+    [HttpGet("dictionary-roots")]
+    public IActionResult DictionaryRoots()
+    {
+        var roots = _localizationService.GetRootDictionaryItems()
+            .Select(i => i.ItemKey)
+            .OrderBy(k => k)
+            .ToList();
+        return Ok(roots);
+    }
+
     // ── Translation completeness ──────────────────────────────────────────────
 
     [HttpGet("completeness")]
@@ -265,6 +277,14 @@ public class TranslationManagerController : UmbracoApiController
             allItems.Add(root);
             allItems.AddRange(_localizationService.GetDictionaryItemDescendants(root.Key));
         }
+
+        var excluded = _options.ExcludedDictionaryRoots;
+        if (excluded.Count > 0)
+            allItems = allItems
+                .Where(i => !excluded.Any(r =>
+                    i.ItemKey.Equals(r, StringComparison.OrdinalIgnoreCase) ||
+                    i.ItemKey.StartsWith(r + ".", StringComparison.OrdinalIgnoreCase)))
+                .ToList();
 
         var parentGuids = allItems
             .Where(i => i.ParentId.HasValue)

@@ -93,6 +93,7 @@ If you prefer to configure manually:
 "TranslationManager": {
   "CacheDurationMinutes": 5,
   "ExcludedDirectories": ["node_modules", "bin", "obj", ".git", "dist", "wwwroot"],
+  "ExcludedDictionaryRoots": ["Umbraco", "backoffice"],
   "ScanSources": []
 }
 ```
@@ -101,6 +102,24 @@ If you prefer to configure manually:
 |---|---|---|
 | `CacheDurationMinutes` | `5` | How long scan results are cached. Set to `0` to disable |
 | `ExcludedDirectories` | see above | Directory names skipped during file traversal |
+| `ExcludedDictionaryRoots` | `[]` | Root dictionary keys whose children are excluded from all results. Useful for backoffice-only keys (field labels, property descriptions) that should not be treated as missing or unused. Matched as exact root or any key starting with `root.` |
+
+### Excluding backoffice dictionary keys
+
+Some projects use Umbraco dictionary keys exclusively for backoffice labels — content type field names, property descriptions, and similar editor-facing strings. These are not frontend translation keys and should not appear as unused or missing in the dashboard.
+
+Use `ExcludedDictionaryRoots` to exclude an entire root and all its descendants:
+
+```json
+"TranslationManager": {
+  "ExcludedDictionaryRoots": ["Umbraco", "backoffice"],
+  "ScanSources": [...]
+}
+```
+
+This excludes `Umbraco`, `Umbraco.ContentTypes.PageTitle`, `backoffice.labels.name`, etc. — but not `UmbracoForms.something` (prefix matching requires an exact root or `root.` boundary).
+
+The setup wizard lists your existing dictionary roots as checkboxes and automatically includes the setting in the generated `appsettings.json` snippet.
 
 ## Dashboard
 

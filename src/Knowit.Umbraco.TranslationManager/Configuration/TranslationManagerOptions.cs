@@ -19,6 +19,12 @@ public class TranslationManagerOptions
     /// </summary>
     public int CacheDurationMinutes { get; set; } = 5;
 
+    /// <summary>
+    /// Root dictionary keys whose children and descendants are excluded from scan and completeness results.
+    /// Matched as exact root or key starting with root + ".".
+    /// </summary>
+    public List<string> ExcludedDictionaryRoots { get; set; } = [];
+
     /// <summary>Ordered list of sources to scan for dictionary key usage.</summary>
     public List<ScanSourceOptions> ScanSources { get; set; } = [];
 }
