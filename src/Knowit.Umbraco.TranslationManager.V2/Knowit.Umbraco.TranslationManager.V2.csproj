@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>Knowit.Umbraco.TranslationManager</PackageId>
-    <Version>2.1.0</Version>
+    <Version>2.1.1</Version>
     <Authors>Nicklas Vilhelmsen</Authors>
     <Company>Knowit</Company>
     <Copyright>Copyright © Knowit 2026</Copyright>
@@ -15,8 +15,10 @@
     <PackageProjectUrl>https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <PackageTags>umbraco;umbraco17;translation;i18n;dictionary;audit;localization;umbraco-marketplace</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,6 +32,7 @@
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="README.md" />
+    <None Include="icon.png" Pack="true" PackagePath="icon.png" />
   </ItemGroup>
 
 </Project>

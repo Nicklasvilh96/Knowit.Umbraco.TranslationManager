@@ -5,17 +5,18 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>Knowit.Umbraco.TranslationManager</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>Nicklas Vilhelmsen</Authors>
     <Company>Knowit</Company>
     <Copyright>Copyright © Knowit 2026</Copyright>
     <Description>Umbraco backoffice dashboard for auditing translation dictionary keys against code usage. Configurable scan sources with regex patterns support Razor, React, Vue, or any custom pattern.</Description>
-    <PackageTags>umbraco;translation;i18n;dictionary;audit;localization</PackageTags>
+    <PackageTags>umbraco;translation;i18n;dictionary;audit;localization;umbraco-marketplace</PackageTags>
     <PackageProjectUrl>https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +25,7 @@
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="README.md" />
+    <None Include="icon.png" Pack="true" PackagePath="icon.png" />
   </ItemGroup>
 
   <!--

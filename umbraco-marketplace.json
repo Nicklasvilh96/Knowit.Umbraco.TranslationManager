@@ -1,0 +1,40 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "Title": "Translation Manager",
+  "Description": "Backoffice dashboard for auditing Umbraco translation dictionary keys against actual code usage. Surfaces unused keys, missing translations, and language coverage gaps across Razor, React, Vue, or any custom pattern. Includes a setup wizard, multi-source scanning, and bulk dictionary management.",
+  "Category": "Translations",
+  "LicenseTypes": ["Free"],
+  "PackageType": "Package",
+  "AuthorDetails": {
+    "Name": "Knowit",
+    "Url": "https://www.knowit.dk",
+    "Contributors": [
+      {
+        "Name": "Nicklas Vilhelmsen",
+        "Url": "https://github.com/Nicklasvilh96"
+      }
+    ],
+    "SyncContributorsFromRepository": true
+  },
+  "DocumentationUrl": "https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager#readme",
+  "IssueTrackerUrl": "https://github.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager/issues",
+  "Screenshots": [
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager/main/docs/screenshots/dashboard.png",
+      "Caption": "Translation audit dashboard with scan summary"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager/main/docs/screenshots/missing.png",
+      "Caption": "Missing translations with inline add-to-dictionary"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager/main/docs/screenshots/completeness.png",
+      "Caption": "Per-language translation completeness"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/Nicklasvilh96/Knowit.Umbraco.TranslationManager/main/docs/screenshots/wizard.png",
+      "Caption": "Setup wizard with scan source presets"
+    }
+  ],
+  "Tags": ["translation", "i18n", "dictionary", "audit", "localization"]
+}

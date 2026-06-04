@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2026-06-04
+
+### Changed
+- Added NuGet package icon and Umbraco Marketplace listing metadata
+
+## [1.1.1] - 2026-06-04
+
+### Changed
+- Added NuGet package icon and Umbraco Marketplace listing metadata
+
 ## [2.1.0] - 2026-06-04
 
 ### Added
