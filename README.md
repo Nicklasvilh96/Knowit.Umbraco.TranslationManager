@@ -1,5 +1,8 @@
 # Knowit.Umbraco.TranslationManager
 
+[![NuGet v1](https://img.shields.io/nuget/v/Knowit.Umbraco.TranslationManager?label=v1%20NuGet)](https://www.nuget.org/packages/Knowit.Umbraco.TranslationManager/1.1.0)
+[![NuGet v2](https://img.shields.io/nuget/v/Knowit.Umbraco.TranslationManager?label=v2%20NuGet)](https://www.nuget.org/packages/Knowit.Umbraco.TranslationManager)
+
 > **Two versions are available:**
 > - **v1** (`1.x`): targets **Umbraco 13** (.NET 8). Install with `dotnet add package Knowit.Umbraco.TranslationManager --version 1.*`
 > - **v2** (`2.x`): targets **Umbraco 17+** (.NET 10), with a Lit/Web Component dashboard and optional AI suggestions. Install with `dotnet add package Knowit.Umbraco.TranslationManager`
